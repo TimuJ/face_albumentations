@@ -1,20 +1,15 @@
-import os
-import glob
-import argparse
-import logging
-import cv2
-import albumentations as A
-from utils import detect, imread
 from model.DBFace_model import DBFace
-
+from utils import detect, imread
+import albumentations as A
+import sys
+import cv2
+import logging
+import argparse
+import glob
+import os
+from transforms import transforms
 
 logger = logging.getLogger(__name__)
-
-
-transforms = A.Compose([
-    A.RandomBrightnessContrast(p=0.2),
-    A.RandomGamma(p=0.2),
-])
 
 
 def load_model(model_path: str, cuda: bool):
@@ -97,8 +92,8 @@ def main(args: argparse.Namespace) -> None:
                 for bbox in detected_bboxes:
                     # get face region
                     x_min, y_min, x_max, y_max = map(int, bbox)
-                    logger.info(f"Face region: {x_min}, {
-                                y_min}, {x_max}, {y_max}")
+                    logger.info(
+                        f"Face region: {x_min}, {y_min}, {x_max}, {y_max}")
                     face_region = image[y_min:y_max, x_min:x_max]
                     # apply transforms to face region
                     transformed_face = transforms(image=face_region)['image']
