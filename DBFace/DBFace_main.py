@@ -96,18 +96,20 @@ def main(args: argparse.Namespace) -> None:
                         f"Face region: {x_min}, {y_min}, {x_max}, {y_max}")
                     face_region = image[y_min:y_max, x_min:x_max]
                     # apply transforms to face region
-                    transformed_face = transforms(image=face_region)['image']
-                    # replace face region with transformed face
-                    image[y_min:y_max, x_min:x_max] = transformed_face
+                    try:
+                        transformed_face = transforms(
+                            image=face_region)['image']
+                        # replace face region with transformed face
+                        image[y_min:y_max, x_min:x_max] = transformed_face
+                    except Exception as e:
+                        logger.error(
+                            f"Error applying transforms to {file}: {e}, check if you defined transforms correctly")
+                        return
                 logger.info(f"Transforms applied to {file}")
                 # save image
                 output_path = os.path.join(
                     args.directory_with_output, os.path.basename(file))
                 cv2.imwrite(output_path, image)
-            except Exception as e:
-                logger.error(
-                    f"Error applying transforms to {file}: {e}, check if you defined transforms correctly")
-                return
 
     not_founded_faces(not_find_face, "not_finded_faces.txt")
     logger.info(
