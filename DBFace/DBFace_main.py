@@ -3,6 +3,7 @@ from utils import detect, imread
 import albumentations as A
 import sys
 import cv2
+import json
 import logging
 import argparse
 import glob
@@ -57,12 +58,18 @@ def get_image_list(directory: str) -> list[str]:
     return image_pathes
 
 
-def not_founded_faces(not_find_face: list[str], filename: str) -> None:
+def not_founded_faces_dump(not_find_face: list[str], filename: str) -> None:
     # Open the file in write mode ('w')
-    with open(filename, "w") as file:
+    with open(filename, "w", encoding='utf-8') as file:
         # Write each item in the list to a new line
         for item in not_find_face:
             file.write(item + "\n")
+
+
+def founded_faces_dump(found_faces: dict, filename: str) -> None:
+    with open(filename, "w", encoding='utf-8') as file:
+        for key, value in found_faces.items():
+            file.write(f'"{key}": {value}\n')
 
 
 def main(args: argparse.Namespace) -> None:
@@ -80,41 +87,45 @@ def main(args: argparse.Namespace) -> None:
     logger.info(f"Model loaded")
 
     not_find_face = []
+    found_faces = {}
+    transform = transforms()
     for file in image_list:
         image, detected_bboxes = find_face(
             dbface, file, args.cuda)
-        logger.info(f"Detected {len(detected_bboxes)} faces in {file}")
         if detected_bboxes == 'Not find bboxes':
             not_find_face.append(file)
             logger.info(f"Not find face in {file}")
         else:
-            try:
-                logger.info(f"Applying transforms to {file}")
-                for bbox in detected_bboxes:
-                    # get face region
-                    x_min, y_min, x_max, y_max = map(int, bbox)
-                    logger.info(
-                        f"Face region: {x_min}, {y_min}, {x_max}, {y_max}")
-                    face_region = image[y_min:y_max, x_min:x_max]
-                    # apply transforms to face region
-                    try:
-                        transformed_face = transforms(
-                            image=face_region)['image']
-                        # replace face region with transformed face
-                        image[y_min:y_max, x_min:x_max] = transformed_face
-                    except Exception as e:
-                        logger.error(
-                            f"Error applying transforms to {file}: {e}, check if you defined transforms correctly")
-                        return
-                logger.info(f"Transforms applied to {file}")
-                # save image
-                output_path = os.path.join(
-                    args.directory_with_output, os.path.basename(file))
-                cv2.imwrite(output_path, image)
+            logger.info(f"Detected {len(detected_bboxes)} faces in {file}")
+            found_faces[file] = len(detected_bboxes)
+            logger.info(f"Applying transforms to {file}")
+            for bbox in detected_bboxes:
+                # get face region
+                x_min, y_min, x_max, y_max = map(int, bbox)
+                logger.info(
+                    f"Face region: {x_min}, {y_min}, {x_max}, {y_max}")
+                face_region = image[y_min:y_max, x_min:x_max]
+                # apply transforms to face region
+                try:
+                    transformed_face = transform(
+                        image=face_region)['image']
+                    # replace face region with transformed face
+                    image[y_min:y_max, x_min:x_max] = transformed_face
+                except Exception as e:
+                    logger.error(
+                        f"Error applying transforms to {file}: {e}, check if you defined transforms correctly")
+                    return
+            logger.info(f"Transforms applied to {file}")
+            # save image
+            output_path = os.path.join(
+                args.directory_with_output, os.path.basename(file))
+            cv2.imwrite(output_path, image)
 
-    not_founded_faces(not_find_face, "not_finded_faces.txt")
+    not_founded_faces_dump(not_find_face, args.not_founded_faces)
     logger.info(
         f"Not find face in {len(not_find_face)} images, saved to not_finded_faces.txt")
+    founded_faces_dump(found_faces, args.found_faces)
+    logger.info(f"Found {len(found_faces)} faces, saved to founded_faces.json")
 
 
 if __name__ == "__main__":
@@ -129,7 +140,10 @@ if __name__ == "__main__":
                         default='DBFace/model/dbface.pth', help='path to model')
     parser.add_argument("--log_name", type=str, required=False,
                         default="face_albumentations.log")
-
+    parser.add_argument("--found_faces", type=str, required=False,
+                        default="founded_faces.json", help="path to json file with founded faces")
+    parser.add_argument("--not_founded_faces", type=str, required=False,
+                        default="not_finded_faces.txt", help="path to txt file with not founded faces")
     args = parser.parse_args()
 
     logging.basicConfig(filename=args.log_name,
