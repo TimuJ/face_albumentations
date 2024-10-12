@@ -83,6 +83,7 @@ def main(args: argparse.Namespace) -> None:
     for file in image_list:
         image, detected_bboxes = find_face(
             dbface, file, args.cuda)
+        logger.info(f"Detected {len(detected_bboxes)} faces in {file}")
         if detected_bboxes == 'Not find bboxes':
             not_find_face.append(file)
             logger.info(f"Not find face in {file}")
