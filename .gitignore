@@ -1,5 +1,5 @@
-face_albumentations.log
 not_finded_faces.txt
 *.pyc
 test_faces/*
 test_faces_output/*
+*.log
