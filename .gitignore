@@ -1,0 +1,6 @@
+face_albumentations.log
+not_finded_faces.txt
+DBFace/model/__pycache__/DBFace_model.cpython-312.pyc
+DBFace/__pycache__/utils.cpython-312.pyc
+test_faces/*
+test_faces_output/*
