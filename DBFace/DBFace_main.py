@@ -109,8 +109,8 @@ def main(args: argparse.Namespace) -> None:
                 x_min, y_min, x_max, y_max = map(int, bbox)
                 x_min = max(0, x_min)
                 y_min = max(0, y_min)
-                x_max = max(x_max, im_width)
-                y_max = max(y_max, im_height)
+                x_max = min(x_max, im_width)
+                y_max = min(y_max, im_height)
                 logger.info(
                     f"Face region: {x_min}, {y_min}, {x_max}, {y_max}")
                 face_region = image[y_min:y_max, x_min:x_max]
