@@ -37,7 +37,7 @@ def find_face(model, filename, cuda: bool):
                 [obj.x, obj.y, obj.x+obj.width, obj.y+obj.height])
             # pascal_voc format
             # [x_min, y_min, x_max, y_max]
-        return image, detected_bboxes
+        return image, detected_bboxes, im_height, im_width
 
 
 def get_image_list(directory: str) -> list[str]:
@@ -51,6 +51,11 @@ def get_image_list(directory: str) -> list[str]:
         directory + "/**/*.BMP",
         directory + "/**/*.png",
         directory + "/**/*.PNG",
+        directory + "/**/*.tif",
+        directory + "/**/*.tiff",
+        directory + "/**/*.TIF",
+        directory + "/**/*.TIFF",
+
     ]
     image_pathes = []
     for pattern in search_patterns:
@@ -90,7 +95,7 @@ def main(args: argparse.Namespace) -> None:
     found_faces = {}
     transform = transforms()
     for file in image_list:
-        image, detected_bboxes = find_face(
+        image, detected_bboxes, im_height, im_width = find_face(
             dbface, file, args.cuda)
         if detected_bboxes == 'Not find bboxes':
             not_find_face.append(file)
@@ -102,6 +107,10 @@ def main(args: argparse.Namespace) -> None:
             for bbox in detected_bboxes:
                 # get face region
                 x_min, y_min, x_max, y_max = map(int, bbox)
+                x_min = max(0, x_min)
+                y_min = max(0, y_min)
+                x_max = max(x_max, im_width)
+                y_max = max(y_max, im_height)
                 logger.info(
                     f"Face region: {x_min}, {y_min}, {x_max}, {y_max}")
                 face_region = image[y_min:y_max, x_min:x_max]
