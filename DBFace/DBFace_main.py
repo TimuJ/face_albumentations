@@ -30,7 +30,7 @@ def find_face(model, filename, cuda: bool):
     im_height, im_width = image.shape[:2]
     objs = detect(model, image, cuda=cuda)
     if not objs:
-        return image, 'Not find bboxes'
+        return image, 'Not find bboxes', im_height, im_width
     else:
         for obj in objs:
             detected_bboxes.append(
@@ -118,7 +118,14 @@ def main(args: argparse.Namespace) -> None:
                 try:
                     transformed_face = transform(
                         image=face_region)['image']
+                    # Ensure the transformed face and face region are the same size
+                    if transformed_face.shape != face_region.shape:
+                        logger.error(
+                            "Transformed face and face region shapes do not match. Check transforms parameters")
+                        return
                     # replace face region with transformed face
+                    blended_face = cv2.addWeighted(
+                        transformed_face, args.alpha, face_region, 1 - args.alpha, 0)
                     image[y_min:y_max, x_min:x_max] = transformed_face
                 except Exception as e:
                     logger.error(
@@ -153,6 +160,8 @@ if __name__ == "__main__":
                         default="founded_faces.json", help="path to json file with founded faces")
     parser.add_argument("--not_founded_faces", type=str, required=False,
                         default="not_finded_faces.txt", help="path to txt file with not founded faces")
+    parser.add_argument("-a", "--alpha", type=float, default=0.2,
+                        help="adjust the value of alpha for blending, 1 is full transformed image, 0 is no transformation")
     args = parser.parse_args()
 
     logging.basicConfig(filename=args.log_name,
