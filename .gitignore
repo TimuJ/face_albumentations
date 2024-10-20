@@ -3,3 +3,6 @@ not_finded_faces.txt
 test_faces/*
 test_faces_output/*
 *.log
+test.ipynb
+logs/*
+.vscode/launch.json
