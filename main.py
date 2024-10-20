@@ -89,10 +89,10 @@ def proceed_with_mask(image_list, annotations, transform, args):
             blended_face = cv2.addWeighted(
                 transformed_face, args.alpha, cropped_image, 1 - args.alpha, 0)
             logger.info(f"Transforms applied to {image}")
-            # convert background to white
+            # convert background to mask
             mask = np.all(clipped_mask == [0, 0, 0], axis=-1)
-            # Change black pixels to white
-            blended_face[mask] = [255, 255, 255]
+            # Using original background
+            blended_face[mask] = resized_image[mask]
             # save image
             logger.info(f"Saving {image}")
             output_path = os.path.join(
