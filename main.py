@@ -164,8 +164,7 @@ if __name__ == "__main__":
                         default='CelebA-HQ-img', help='path to directory with images')
     parser.add_argument('-o', '--directory_with_output', type=str,
                         default='test_faces_output', help='path to directory with output images')
-    parser.add_argument(
-        '--mask', type=str, default='CelebAMask-HQ-mask-anno', help='path to mask directory')
+    parser.add_argument('--mask', type=str, help='path to mask directory')
     parser.add_argument("--annotations", type=str, default="skin hair neck l_ear r_ear",
                         help="annotations to parse for masks, separated by space")
     parser.add_argument('--model', type=str,
