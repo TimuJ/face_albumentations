@@ -4,15 +4,11 @@
 
 - DBFace (<https://github.com/dlunion/DBFace>), which is fast but not very accurate.
 
-- CelebAMask-HQ masks, where masks are in .png, rgb format with desired parts are [255, 255, 255] and everything else is [0, 0, 0]
+- CelebAMask-HQ masks, where masks are in .png, rgb format with desired parts are white [255, 255, 255] and everything else is black [0, 0, 0]
 
 ## Usage
 
-Define albumentations transforms in transforms.py.
-
-```bash
-python faces_transorm.py
-```
+Define albumentations transforms in transforms.py
 
 Currently supported arguments:
 
@@ -30,7 +26,7 @@ Currently supported arguments:
 For DBFace usage:
 
 ```bash
-python main.py -i test_faces -o test_faces_output --model dbface -- -a 0.7 --log_name face_albumentations.log
+python main.py -i test_faces -o test_faces_output --model dbface -a 0.7 --log_name face_albumentations.log
 ```
 
 For pre-extracted masks:
